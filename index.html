@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang=='en'>
+<head>
+<link rel='stylesheet' type='text/css' href='/test/font-awesome/css/all.css'>
+<style>
+.pointer:hover
+{
+cursor:pointer;
+color:red;
+}
+
+
+.selectRow
+{
+color:white;
+background:black;
+}
+.disSelectRow
+{
+color:black;
+background:white;
+}
+.notFound
+{
+color:red;
+}
+.found
+{
+color:black;
+}
+.tableDiv
+{
+width: 530px;
+max-height: 300px;
+overflow: scroll;
+}
+.table
+{
+border:1px solid black;
+//color:blue;
+
+ //width: 530px;
+  //height: 300px;
+  
+}
+
+#detailDiv td
+{
+width:100px;
+}
+
+
+/*body {
+  height: 100%;
+  background: whitesmoke;
+  overflow: scroll;
+  width: 80%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 3em;
+  font: 100%/1.4 serif;
+  border: 1px solid rgba(0,0,0,0.25)
+}*/
+</style>
+<meta charset='utf-8'>
+<title>student</title>
+<script>
+function startup()
+{
+//var url='getStudents'
+var url='manageStudent';
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function(){
+if(xmlHttpRequest.readyState==4 && xmlHttpRequest.status==200)
+{
+var result=JSON.parse(xmlHttpRequest.responseText);
+updateTable(result);
+}
+};
+xmlHttpRequest.open('GET',url,true);
+xmlHttpRequest.send();
+
+var searchText=document.getElementById("searchText");
+searchText.addEventListener('input',search);
+var table=document.getElementById("table");
+table.classList.add("table");
+}
+
+var selectedRow;
+function search()
+{
+//alert (this.value);
+var searchValue=this.value;
+//var table=document.getElementById("table").rows;
+//alert(table.length);
+//alert(table.cells[2].firstChild.data);
+var rows=document.getElementById("table").rows;
+for(var x=1;x<rows.length;x++)
+{
+if(searchValue===rows[x].cells[2].firstChild.data)
+{
+//alert(rows[x]);
+this.classList.remove("notFound");
+this.classList.add("found");
+//alert(this.classList+"if");
+rows[x].classList.remove("disSelectRow");
+rows[x].classList.add("selectRow");
+selectedRow=rows[x];
+alert(selectedRow.rowIndex);
+var table=document.getElementById('table');
+//scrollTop();
+//scrollDown();
+selectedRow[0].scrollToTop();
+
+//select(selectedRow.rowIndex);
+showDetail(selectedRow);
+break;
+//alert("aa");
+}
+else
+{
+removeDetail();
+hideDetail();
+this.classList.remove("found");
+this.classList.add("notFound");
+//console.log(this.classList+"hello");
+rows[x].classList.remove("selectRow");
+rows[x].classList.add("disSelectRow");
+}
+//alert(rows[x].cells[2].firstChild.data);
+}
+}
+var mode="view";
+function selectFunction()
+{
+//alert(mode);
+if(mode!="view")return;
+var r=this;
+document.getElementById("searchText").value="";
+//alert(r);
+//console.log(r.cellIndex);
+console.log(r.rowIndex);
+
+if(selectedRow!=null)
+{
+if(selectedRow.rowIndex==r.rowIndex)
+{
+showDetail();
+return;
+}
+selectedRow.classList.add("disSelectRow");
+r.classList.remove("disSelectRow");
+r.classList.add("selectRow");
+selectedRow=r;
+removeDetail();
+showDetail(selectedRow);
+return;
+}
+selectedRow=r;
+selectedRow.classList.remove("disSelecteRow");
+selectedRow.classList.add("selectRow");
+showDetail(selectedRow);
+
+}
+
+function hideDetail()
+{
+var detailDiv=document.getElementById("detailDiv");
+detailDiv.style.display="none";
+}
+
+function showDetail(SelectedRow)
+{
+var table=document.getElementById('table');
+var detailTable=document.getElementById('detailTable');
+
+//append
+detailTable.rows[0].cells[1].appendChild(document.createTextNode(table.rows.item(selectedRow.rowIndex).cells[1].innerHTML));
+detailTable.rows[1].cells[1].appendChild(document.createTextNode(table.rows.item(selectedRow.rowIndex).cells[2].innerHTML));
+detailTable.rows[2].cells[1].appendChild(document.createTextNode(table.rows.item(selectedRow.rowIndex).cells[3].innerHTML));
+var detailDiv=document.getElementById("detailDiv");
+detailDiv.style.display="block";
+}
+function removeDetail()
+{
+var table=document.getElementById('table');
+var detailTable=document.getElementById('detailTable');
+//alert(selectedRow);
+//remove
+detailTable.rows[0].cells[1].innerHTML="";
+detailTable.rows[1].cells[1].innerHTML="";
+detailTable.rows[2].cells[1].innerHTML="";
+}
+
+function updateTable(result)
+{
+var x=1;
+var table=document.getElementById("table");
+//remove from table
+while(table.hasChildNodes())
+{
+table.removeChild(table.firstChild);
+}
+var headRow=table.insertRow(0);
+headRow.insertCell(0).innerHTML='S.no';
+headRow.insertCell(1).innerHTML='Id';
+headRow.insertCell(2).innerHTML='Name';
+headRow.insertCell(3).innerHTML='Number';
+headRow.insertCell(4).innerHTML='Edit';
+headRow.insertCell(5).innerHTML='Delete';
+//topCell.appendChild(document.createTextNode(x));
+//add to table starts
+result.forEach(function(value){	
+console.log(value);
+var row=table.insertRow(x);
+var cell=row.insertCell(0);
+var cell1=row.insertCell(1).innerHTML=value.id;
+var cell2=row.insertCell(2).innerHTML=value.name;
+var cell3=row.insertCell(3).innerHTML=value.number;
+var cell4=row.insertCell(4);
+var e=document.createElement("i");
+e.className="fas fa-edit";
+cell4.appendChild(e);
+var cell5=row.insertCell(5);
+g=document.createElement("i");
+g.className="fas fa-trash";
+cell5.appendChild(g);
+cell.appendChild(document.createTextNode(x));
+cell4.addEventListener('click',edit);
+cell4.classList.add("pointer");
+cell5.addEventListener('click',Delete);
+cell5.classList.add("pointer");
+row.addEventListener('click',selectFunction);
+x++;
+});
+}
+
+
+function add()
+{
+var action =document.getElementById('action');
+action.value='add';
+console.log(action.value);
+
+var divAdd=document.getElementById('divAdd');
+var divOne=document.getElementById('divOne');
+hideDetail();
+mode="add";
+var transparentDivision=document.getElementById("transDiv");
+//transparentDivision.style.display='block';
+transparentDivision.style='position:absolute;','height:100px;','width:500px;','background-repeat:repeat;'
+divOne.style.display='block';
+divAdd.style.display='block';
+}
+
+
+
+function sendAndCheckAdd()
+{
+var divAdd=document.getElementById('divAdd');
+var divOne=document.getElementById('divOne');
+var f=document.getElementById('formAdd');
+var action =document.getElementById('action');
+//alert(action.value +' for add');
+
+var obj=new Object();
+obj.action=action.value;
+obj.name=f.name.value;
+obj.number=f.number.value;
+//alert(JSON.stringify(obj));
+var xmlHttpRequest=new XMLHttpRequest();
+var url='manageStudent';
+xmlHttpRequest.onreadystatechange=function(){
+if(xmlHttpRequest.readyState==4 && xmlHttpRequest.status==200)
+{
+var result=JSON.parse(xmlHttpRequest.responseText);
+console.log('add '+result);
+console.log('response aaya');
+updateTable(result);
+f.name.value="";
+f.number.value="";
+mode="view";
+divAdd.style.display='none';
+divOne.style.display='block';
+}
+
+}
+xmlHttpRequest.open('POST',url,true);
+xmlHttpRequest.send(JSON.stringify(obj));
+}
+
+
+function sendAndCheckEdit()
+{
+var divEdit=document.getElementById('divEdit');
+var divOne=document.getElementById('divOne');
+var f=document.getElementById('formEdit');
+var action =document.getElementById('action');
+//alert(action.value +' for Edit');
+
+var obj=new Object();
+obj.action=action.value;
+obj.id=f.id.value;
+obj.name=f.name.value;
+obj.number=f.number.value;
+//alert(JSON.stringify(obj));
+var xmlHttpRequest=new XMLHttpRequest();
+var url='manageStudent';
+xmlHttpRequest.onreadystatechange=function(){
+if(xmlHttpRequest.readyState==4 && xmlHttpRequest.status==200)
+{
+var result=JSON.parse(xmlHttpRequest.responseText);
+console.log('edit '+result);
+console.log('response aaya');
+updateTable(result);
+mode="view";
+divEdit.style.display='none';
+divOne.style.display='block';
+}
+
+}
+xmlHttpRequest.open('POST',url,true);
+xmlHttpRequest.send(JSON.stringify(obj));
+}
+
+
+function sendAndCheckDelete()
+{
+var divDelete=document.getElementById('divDelete');
+var divOne=document.getElementById('divOne');
+var f=document.getElementById('formDelete');
+var action =document.getElementById('action');
+//alert(action.value +' for Delete');
+
+var obj=new Object();
+obj.action=action.value;
+obj.id=f.id.value;
+obj.name=f.name.value;
+obj.number=f.number.value;
+//alert(JSON.stringify(obj));
+var xmlHttpRequest=new XMLHttpRequest();
+var url='manageStudent';
+xmlHttpRequest.onreadystatechange=function(){
+if(xmlHttpRequest.readyState==4 && xmlHttpRequest.status==200)
+{
+var result=JSON.parse(xmlHttpRequest.responseText);
+console.log('delete '+result);
+console.log('response aaya');
+updateTable(result);
+mode="view";
+divDelete.style.display='none';
+divOne.style.display='block';
+}
+
+}
+xmlHttpRequest.open('POST',url,true);
+xmlHttpRequest.send(JSON.stringify(obj));
+}
+
+
+
+function edit()
+{
+mode="edit";
+var r=this;
+var f=document.getElementById('formEdit');
+var table=document.getElementById('table');
+f.id.value=table.rows.item(r.parentNode.rowIndex).cells[1].firstChild.data;
+f.name.value=table.rows.item(r.parentNode.rowIndex).cells[2].firstChild.data;
+f.number.value=table.rows.item(r.parentNode.rowIndex).cells[3].firstChild.data;
+var action =document.getElementById('action');
+action.value='edit';
+console.log(action.value);
+var divEdit=document.getElementById('divEdit');
+var divOne=document.getElementById('divOne');
+hideDetail();
+divOne.style.display='none';
+divEdit.style.display='block';
+}
+
+
+function Delete()
+{
+mode="delete";
+var r=this;
+var f=document.getElementById('formDelete');
+var table=document.getElementById('table');
+f.id.value=table.rows.item(r.parentNode.rowIndex).cells[1].firstChild.data;
+f.name.value=table.rows.item(r.parentNode.rowIndex).cells[2].firstChild.data;
+f.number.value=table.rows.item(r.parentNode.rowIndex).cells[3].firstChild.data;
+var action =document.getElementById('action');
+action.value='delete';
+console.log(action.value);
+var divDelete=document.getElementById('divDelete');
+var divOne=document.getElementById('divOne');
+hideDetail();
+divOne.style.display='none';
+divDelete.style.display='block';
+}
+function cancle()
+{
+mode="view";
+var divOne=document.getElementById('divOne');
+var divAdd=document.getElementById('divAdd');
+var divEdit=document.getElementById('divEdit');
+var divDelete=document.getElementById('divDelete');
+
+
+divOne.style.display='block';
+divAdd.style.display='none';
+divEdit.style.display='none';
+divDelete.style.display='none';
+} 
+
+function confirmDelete()
+{
+var result=confirm("Are You Sure do you want to delete this record permanantely ?");
+//alert(result);
+if(result)
+{
+sendAndCheckDelete();
+}
+else cancle();
+}
+
+window.addEventListener('load',startup);
+</script>
+</head>
+<body>
+<center>
+<input type='hidden' name='action'value="" id='action'>
+<h1>Welcome</h1>
+<h1>Students Record</h1>
+
+
+
+<div id='divAdd' style='display:none'>
+<form id='formAdd'>
+<h1>Add Module</h1> 
+<table border='1' id='tableAdd'>
+<tr>
+<td>Enter Name</td><td><input type='text' name='name' id='nameAdd'></td>
+</tr>
+<tr>
+<td>Enter Number</td><td><input type='text' name='number' id='numberAdd'></td>
+</tr>
+<tr>
+<td><input type='button' onclick='cancle()' value='cancle'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;<input type='button' value='save' onclick='sendAndCheckAdd()'></td>
+</tr>
+</table>
+</form>
+</div>
+
+
+
+<div id='divEdit' style='display:none'>
+<form id='formEdit'>
+<h1>Edit Module</h1> 
+<table border='1' id='tableEdit'>
+<tr>
+<td>Id</td><td><input type='text'value='show id' name='id' disabled ></td>
+</tr>
+<tr>
+<td>Enter Name</td><td><input type='text' value='show name' name='name' id='nameEdit'></td>
+</tr>
+<tr>
+<td>Enter Number</td><td><input type='text' name='number' value='show Number' id='numberEdit' ></td>
+</tr>
+<tr>
+<td><input type='button' onclick='cancle()' value='cancle'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;<input type='button' value='save' onclick='sendAndCheckEdit()'></td>
+</tr>
+</table>
+</form>
+</div>
+
+<div id='divDelete' style='display:none'>
+<form id='formDelete'>
+<h1>Delete Module</h1> 
+<table border='1' id='tableEdit'>
+<tr>
+<td>Id</td><td><input type='text'value='show id' name='id' disabled ></td>
+</tr>
+<tr>
+<td>Name</td><td><input type='text' value='show name' name='name' id='nameDelete' disabled></td>
+</tr>
+<tr>
+<td>Number</td><td><input type='text' name='number' value='show Number' id='numberDelete' disabled></td>
+</tr>
+<tr>
+<td><input type='button' onclick='cancle()' value='cancle'></td><td><input type='button' value='YES' onclick='confirmDelete()'></td>
+</tr>
+</table>
+</form>
+</div>
+
+
+<div class='tableDiv' id='divOne' style='display:block'>
+Search<input type='text' id='searchText'> 
+<input type='button' value='add Student' onclick='add()'>
+<table border='1' id='table'>
+<tr>
+<td>S.no</td><td>ID</td><td>Name</td><td>Number</td><td>Edit</td><td>Delete</td>
+</tr>
+</table>
+</div>
+
+<div id='detailDiv' style=display:none>
+<table border='1' id='detailTable'>
+<tr>
+<td>Id</td>
+<td></td>
+</tr>
+<tr>
+<td>name</td>
+<td></td>
+</tr>
+<tr>
+<td>number</td>
+<td> </td>
+</tr>
+</table>
+</div>
+<div id='transDiv' style='display:none'>
+<img src='/test/transparent'></img>
+</div>
+
+</center>
+</body>
+</html>

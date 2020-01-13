@@ -1,0 +1,26 @@
+import javax.servlet.*;
+import javax.servlet.http.*;
+import com.mongodb.*;
+import com.mongodb.client.*;
+import java.util.*;
+public class startup extends HttpServlet
+{
+public void init()
+{
+System.out.println("loadind data Structure");
+mongoEg eg=new mongoEg("studentDB","students");
+List<DBObject>list=eg.getAllRecords();
+List<Student>list1=new LinkedList<>();
+for(int x=0;x<list.size();x++)
+{
+Student s=new Student();
+s.setId(list.get(x).get("_id"));
+s.setName(list.get(x).get("name"));
+s.setNumber(list.get(x).get("number"));
+list1.add(s);
+}
+System.out.println(list1);
+
+System.out.println("-------------------completed--------------");
+}
+}//class
